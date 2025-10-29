@@ -1,0 +1,177 @@
+#NEXUS
+
+BEGIN TAXA;
+DIMENSIONS NTAX=72;
+TAXLABELS
+Galago_senegalensis
+Otolemur_garnetti
+Loris_tardigradus
+Varecia_variegata
+Lemur_catta
+Hapalemur_griseus
+Eulemur_fulvus
+Eulemur_mongoz
+Eulemur_macaco
+Eulemur_coronatus
+Eulemur_rubriventer
+Microcebus_murinus
+Indri_indri
+Propithecus_edwardsi
+Propithecus_verreauxi
+Callicebus_moloch
+Alouatta_pigra
+Alouatta_palliata
+Alouatta_seniculus
+Brachyteles_hypoxanthus
+Brachyteles_arachnoides
+Lagothrix_lagotricha
+Ateles_geoﬀroyi
+Ateles_paniscus
+Saimiri_sciureus
+Saimiri_oerstedii
+Saimiri_boliviensis
+Cebus_apella
+Cebus_olivaceus
+Saguinus_fuscicollis
+Leontopithecus_rosalia
+Callithrix_jacchus
+Callithrix_pygmaea
+Aotus_trivirgatus
+Pongo_pygmaeus
+Pan_troglodytes
+Pan_paniscus
+Gorilla_gorilla
+Symphalangus_syndactylus
+Hylobates_pileatus
+Hylobates_agilis
+Hylobates_lar
+Macaca_sylvanus
+Macaca_nemestrina
+Macaca_mulaa
+Macaca_fuscata
+Macaca_fascicularis
+Theropithecus_gelada
+Papio_hamadryas
+Papio_cynocephalus
+Papio_ursinus
+Papio_anubis
+Mandrillus_sphinx
+Cercocebus_atys
+Chlorocebus_aethiops
+Erythrocebus_patas
+Miopithecus_talapoin
+Semnopithecus_entellus
+Trachypithecus_johnii
+Nasalis_larvatus
+Pygathrix_nemaeus
+Presbys_thomasi
+Piliocolobus_badius
+Colobus_guereza
+Catopithecus_browni
+Proteopithecus_sylviae
+Homunculus_patagonicus
+Leptadapis_magnus
+Adapis_parisiensis
+Canus_torresi
+Teilhardina_belgica
+Northarctus_vencolus
+;
+END;
+
+BEGIN TREES;
+TRANSLATE
+	1 Galago_senegalensis,
+	2 Otolemur_garnetti,
+	3 Loris_tardigradus,
+	4 Varecia_variegata,
+	5 Lemur_catta,
+	6 Hapalemur_griseus,
+	7 Eulemur_fulvus,
+	8 Eulemur_mongoz,
+	9 Eulemur_macaco,
+	10 Eulemur_coronatus,
+	11 Eulemur_rubriventer,
+	12 Microcebus_murinus,
+	13 Indri_indri,
+	14 Propithecus_edwardsi,
+	15 Propithecus_verreauxi,
+	16 Callicebus_moloch,
+	17 Alouatta_pigra,
+	18 Alouatta_palliata,
+	19 Alouatta_seniculus,
+	20 Brachyteles_hypoxanthus,
+	21 Brachyteles_arachnoides,
+	22 Lagothrix_lagotricha,
+	23 Ateles_geoﬀroyi,
+	24 Ateles_paniscus,
+	25 Saimiri_sciureus,
+	26 Saimiri_oerstedii,
+	27 Saimiri_boliviensis,
+	28 Cebus_apella,
+	29 Cebus_olivaceus,
+	30 Saguinus_fuscicollis,
+	31 Leontopithecus_rosalia,
+	32 Callithrix_jacchus,
+	33 Callithrix_pygmaea,
+	34 Aotus_trivirgatus,
+	35 Pongo_pygmaeus,
+	36 Pan_troglodytes,
+	37 Pan_paniscus,
+	38 Gorilla_gorilla,
+	39 Symphalangus_syndactylus,
+	40 Hylobates_pileatus,
+	41 Hylobates_agilis,
+	42 Hylobates_lar,
+	43 Macaca_sylvanus,
+	44 Macaca_nemestrina,
+	45 Macaca_mulaa,
+	46 Macaca_fuscata,
+	47 Macaca_fascicularis,
+	48 Theropithecus_gelada,
+	49 Papio_hamadryas,
+	50 Papio_cynocephalus,
+	51 Papio_ursinus,
+	52 Papio_anubis,
+	53 Mandrillus_sphinx,
+	54 Cercocebus_atys,
+	55 Chlorocebus_aethiops,
+	56 Erythrocebus_patas,
+	57 Miopithecus_talapoin,
+	58 Semnopithecus_entellus,
+	59 Trachypithecus_johnii,
+	60 Nasalis_larvatus,
+	61 Pygathrix_nemaeus,
+	62 Presbys_thomasi,
+	63 Piliocolobus_badius,
+	64 Colobus_guereza,
+	65 Catopithecus_browni,
+	66 Proteopithecus_sylviae,
+	67 Homunculus_patagonicus,
+	68 Leptadapis_magnus,
+	69 Adapis_parisiensis,
+	70 Canus_torresi,
+	71 Teilhardina_belgica,
+	72 Northarctus_vencolus;
+
+TREE 'tree 1++++++++' =
+(((((1:0.15424,2:0.154239):0.219241,3:0.37348000000000003):0.159386,((4:0.227883,((5:0.090
+545,6:0.090545):0.10682,(((7:0.056351,8:0.05635):0.008869,(9:0.057816,10:0.057816):0.00740
+3):0.008732,11:0.073952):0.123414):0.030518):0.106967,(12:0.324026,(13:0.21206,(14:0.0730
+2900000000001,15:0.07303):0.139031):0.111967):0.010823):0.198018):0.055134,((68:0.01,69:
+0.01):0.156001,(72:0.038001,70:0.01):0.01):0.01):0.03966,(71:0.028023,(66:0.097996,(((16:0.2
+40312,((((17:0.025391,18:0.025391):0.016791,19:0.042183):0.130482,(((20:0.032681,21:0.032
+681):0.082851,22:0.115532):0.017714,(23:0.035505,24:0.035506):0.097741):0.039418):0.0554
+89,((((25:0.008274,26:0.008274):0.011553,27:0.019826):0.160509,(28:0.067434,29:0.067434):
+0.1129):0.025303,((30:0.146636,(31:0.13928800000000002,(32:0.050905,33:0.050904):0.0883
+8299999999999):0.007349):0.054989,34:0.201626):0.004012):0.022515):0.012159):0.01,67:0.0
+70312):0.177684,(65:0.01,(((35:0.173188,((36:0.021921,37:0.021921):0.072787,38:0.094708):0
+.078479):0.029005,(39:0.063339,(40:0.037134,(41:0.028469999999999995,42:0.028469):0.008
+665):0.026205):0.138853):0.07507,((((43:0.046727,(44:0.038615,((45:0.017611,46:0.017611):0.
+010008,47:0.027619):0.010995):0.008113):0.032155,((48:0.0399,(49:0.012198,((50:0.007397,5
+1:0.007397):0.003762,52:0.011159):0.001039):0.027700999999999996):0.028336,(53:0.04651
+9000000000005,54:0.046518000000000004):0.021718):0.010646):0.020377,((55:0.056933000
+000000004,56:0.056933):0.019462,57:0.07639599999999999):0.022864):0.056418,((((58:0.019
+382,59:0.019382):0.056671000000000006,(60:0.058943999999999996,61:0.058943999999999
+996):0.017109):0.002503,62:0.078556):0.023016,(63:0.07952600000000001,64:0.079526):0.02
+2046):0.054105):0.121586):0.072738):0.077995):0.01):0.148027):0.041639):0.045854;
+END;
