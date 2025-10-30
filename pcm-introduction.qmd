@@ -18,22 +18,23 @@ BiocManager::install("ggtree")
 ```{r}
 library(tidyverse)
 library(ape)
-library(geiger)
 library(phytools)
-library(phangorn)
-library(treedata.table)
 library(ggtree)
+library(broom)
+library(nlme)
+# also useful for PCM...
+# library(geiger)
+# library(phangorn)
+# library(treedata.table)
 ```
 
-## Vignette 1 - Plotting a Phylogeny
+# Vignette 1 - Plotting a Phylogeny
 
 It is easy to load in phylogenetic trees saved as text files in Newick or Nexus format...
 
 Newick format uses nested parentheses to represent the nesting of clades. Commas separate sister nodes or branches, and the entire tree is terminated with a semicolon. Branch lengths leading to a given node can be indicated following a colon.
 
 Nexus format is a more comprehensive format that can include sequence alignments or character state data in addition to one or more phylogenetic trees in its "TREES" block. Within that block, trees are represented in Newick format.
-
-# Plot phylogenies
 
 ## Example 1 - Kuderna et al 2024
 ```{r}
@@ -50,22 +51,6 @@ plot.phylo(tree, type = "fan", cex = 0.6)
 p <- ggtree(tree, layout = "fan") +
   geom_tiplab(aes(label=label), size=2)
 p
-
-# Optional
-## load more info on taxa names
-d <- read_csv("Kuderna et al taxa.csv", col_names = TRUE)
-d <- d |>
-  rowwise() |>
-  mutate(Genus = strsplit(label, "_")[[1]][1])
-
-## create a treedata.table object
-t <- as.treedata.table(tree = tree, data = as.data.frame(d))
-
-## t$dat holds the data...
-t$dat
-
-## t$phy holds the phylogeny
-t$phy
 ```
 
 ## Example 2 - Lewis et al 2023
@@ -97,9 +82,11 @@ p <- ggtree(pruned_tree, layout = "fan") +
 p
 ```
 
-# Phylogenetically Independent Contrasts
+# Vignette 2 - Phylogenetically Independent Contrasts
 
-Why are these important?!? Let's simulate *random evolution* of two metric characters on this tree and then look at the relationship between them using regression... (the values for a and sig2 are arbitrary, just to give us a wider range of trait values)
+When we are interested in coevolution of traits or adaptive relationships of traits within a group of organisms, it is critical to recognize that closely related species may share trait values because of shared evolutionary history, NOT because of adaptation.
+
+To explore this, let's simulate *random evolution* of two metric characters on this tree and then look at the relationship between them using regression... (the values for a and sig2 in the code below are arbitrary, just to give us a wider range of trait values)
 
 ```{r}
 set.seed(25)
@@ -125,6 +112,8 @@ m <- lm(homerange ~ bodysize, d)
 summary(m)
 ```
 
+How about if we do this MANY time? A simulation...
+
 ```{r}
 sim <- tibble(est = numeric(), p = numeric(), seed = numeric())
 for (i in 1:100){
@@ -145,13 +134,11 @@ for (i in 1:100){
   sim <- bind_rows(sim, res)
 }
 par(mar = c(2, 2, 2, 2))
-hist(sim$est, breaks = seq(-1.2, 1.2, 0.2))
-hist(sim$p, breaks = seq(0,1, by = 0.05))
+hist(sim$est, breaks = seq(-1.2, 1.2, 0.2), main = "Histogram of coefficient estimates")
+hist(sim$p, breaks = seq(0,1, by = 0.05), main = "Histogram of p values")
 ```
 
-Phylogenetic independent contrasts
-
-Lets pull out seed with the highest estimate from our simulation...
+Let's pull out the seed with the highest estimate from our simulation...
 
 ```{r}
 seed <- sim |>
@@ -169,7 +156,9 @@ m <- lm(homerange ~ bodysize, d)
 summary(m)
 ```
 
-This is correlation that's due entirely to effects of phylogeny! Here, species data are not independent of one another.
+This is correlation that's due entirely to effects of phylogeny! Here, species data are not independent of one another!
+
+## Phylogenetic Independent Contrasts
 
 If we are interested in accounting for the effects of phylogeny on the interdependence of our data points, how might we control for this? 
 
@@ -189,11 +178,13 @@ summary(pic.m)
 # there is no relationship between the contrasts...
 ```
 
+It is critical to take phylogeny into account otherwise we risk concluding that adaptation or coevolution have occurred when the relationship seen is due to phylogeny.
+
 # Phylogenetic Generalized Least Squares
 
 PIC method is fine for looking at two metric variables, but often we are interested in more than 2 traits and at traits that are non-metric. PGLS is more flexible approach.
 
-First, PIC on a new dataset... how is eye size related to body size?
+First, we will do PIC on a new dataset... how is eye size related to body size?
 
 ```{r}
 d <- read_csv("primateEyes.csv", col_names = TRUE)
@@ -205,8 +196,11 @@ p
 ggplot(d, aes(x = log(Skull_length), y=log(Orbit_area))) +
   geom_point() +
   geom_smooth(method = "lm")
+# ordinary least squares
 m <- lm(Orbit_area ~ Skull_length, data = d)
 summary(m)
+
+# PIC
 orbit.area <- d$Orbit_area
 names(orbit.area) <- d$Genus_species
 skull.length <- d$Skull_length
@@ -221,12 +215,12 @@ pic.m <- lm(pic.orbit.area ~ pic.skull.length + 0)
 summary(pic.m)
 ```
 
-To do PGLS... need to convert our TREE to a correlation structure object.
+To do PGLS, now, we need to convert our TREE to a correlation structure object...
 
-Different ways to do this, but one simple one is to assume that the correlation between the residual errors of any pairs of species is proportional to the distance on the tree back to the common ancestor of that pair. There are alternative models to derive this correlation structure that imagine more complex forms of evolutionary change.
+There are different ways to do this, but one simple one is to assume that the correlation between the residual errors of any pairs of species is proportional to the distance on the tree back to the common ancestor of that pair. [There are alternative models to derive this correlation structure that imagine more complex forms of evolutionary change.]
 
 ```{r}
-library(nlme)
+# re-read data
 d <- read_csv("primateEyes.csv", col_names = TRUE)
 taxa <- d$Genus_species
 corBM <- corBrownian(phy = tree, form = ~taxa)
@@ -234,11 +228,12 @@ corBM
 pgls.m <- gls(log(Orbit_area)~log(Skull_length), data = d, correlation = corBM)
 summary(pgls.m)
 ```
-Same results! PIC is a specialized case of PGLS.
 
-More generally, we can include additional covariates.
+NOTE: these are the same results for this data set! PIC is a specialized case of PGLS.
 
-Let's now see if relative eye size is related to activity pattern, i.e., how is eye size related to both body size and activity pattern?
+More generally, we can include additional covariates in our modeling.
+
+Using this dataset, let's now see if *relative eye size* is related to *activity pattern*, i.e., how is eye size related to both body size and activity pattern?
 
 ```{r}
 pgls.m <- gls(log(Orbit_area)~log(Skull_length) + Activity_pattern, data = d, correlation = corBM)
@@ -264,33 +259,22 @@ ggplot(d, aes(x = log(Skull_length), y = log(Orbit_area), color = Activity_patte
 
 # Ancestral State Reconstruction
 
-Return to Lewis et al data...
+Let's go back to the Lewis et al data we looked at before...
 
 ```{r}
 tree_file <- "Springer et al S2 timetree with autocorrelated rates and hard-bounded constraints.newick"
 tree <- read.tree(tree_file)
-is.rooted.phylo(tree)
-is.binary(tree)
-# plot full tree
-p <- ggtree(tree, layout = "fan") +
-  geom_tiplab(aes(label=label), size=2)
-p
 # prune the tree to only species used by Lewis et al 2023
 d <- read_csv("Lewis et al table S1.csv", col_names = TRUE)
 taxa <- d$Species
 pruned_tree <- drop.tip(tree, tip = setdiff(tree$tip.label, taxa))
+
 d <- as.data.frame(d) # need to convert tibble to dataframe to use with treetable and ggtree
 d$Dominance <- as.factor(d$Dominance)
-
-# make a treetable object
-# t <- as.treedata.table(tree = pruned_tree, data = d, name_column = "Species")
-# alternatively, we can prune during creation of treetable object
-# t <- as.treedata.table(tree = tree, data = d, name_column = "Species")
-
 colors <- c("green", "blue", "red")
 state_names <- c("codominant", "female", "male")
 
-# plot the pruned tree
+# plot the pruned tree with character stats on tips
 p <- ggtree(pruned_tree, layout = "fan") %<+% d +
   geom_tippoint(aes(color = Dominance), size = 3) +
   scale_color_manual(values = colors) +
@@ -298,7 +282,7 @@ p <- ggtree(pruned_tree, layout = "fan") %<+% d +
 p
 ```
 
-# Run ASR -----
+## Run Ancestral State Reconstruction
 
 Dominant model for the evolution of discrete characters on a phylogeny is the Mk model - continuous time, discrete k, Markov chain model
 
