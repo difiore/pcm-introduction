@@ -1,15 +1,22 @@
 ---
 title: "A Gentle Introduction to PCM"
-format: html
+format:
+  html:
+    embed-resources: true
 editor_options: 
   chunk_output_type: console
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
 ## Libraries to Install and Load
 
-Most are available on CRAN, but for {ggtree}, may need to do the following:
+Most are available on CRAN, but for {ggtree}, it may be necessary to to do the following:
 
 ```{r}
+#| eval: false
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install("ggtree")
@@ -22,13 +29,11 @@ library(phytools)
 library(ggtree)
 library(broom)
 library(nlme)
-# also useful for PCM...
-# library(geiger)
-# library(phangorn)
-# library(treedata.table)
 ```
 
-# Vignette 1 - Plotting a Phylogeny
+The following packages are also also useful for PCM: {geiger}, {phangorn}, {treedata.table}
+
+## Plotting a Phylogeny
 
 It is easy to load in phylogenetic trees saved as text files in Newick or Nexus format...
 
@@ -36,7 +41,7 @@ Newick format uses nested parentheses to represent the nesting of clades. Commas
 
 Nexus format is a more comprehensive format that can include sequence alignments or character state data in addition to one or more phylogenetic trees in its "TREES" block. Within that block, trees are represented in Newick format.
 
-## Example 1 - Kuderna et al 2024
+### Example 1 - Kuderna et al 2024
 ```{r}
 tree_file <- "Kuderna et al S4 fossil calibrated time tree.newick"
 tree <- read.tree(tree_file)
@@ -44,7 +49,7 @@ is.rooted.phylo(tree)
 is.binary(tree)
 
 ## quick plot
-plot.phylo(tree, type = "fan", cex = 0.6)
+plot.phylo(tree, type = "cladogram", cex = 0.6)
 ## or type = "cladogram" or "phylogram"
 
 ## plot with ggplot
@@ -53,7 +58,7 @@ p <- ggtree(tree, layout = "fan") +
 p
 ```
 
-## Example 2 - Lewis et al 2023
+### Example 2 - Lewis et al 2023
 ```{r}
 tree_file <- "Lewis et al figure S1 tree.nexus"
 tree <- read.nexus(tree_file)
@@ -62,7 +67,7 @@ plot.phylo(tree, type = "phylogram", cex = 0.6, direction = "rightwards")
 axisPhylo(backward = TRUE) # compare to lewis et al figure S1
 ```
 
-## Example 3 - Springer et al 2015
+### Example 3 - Springer et al 2015
 ```{r}
 tree_file <- "Springer et al S2 timetree with autocorrelated rates and hard-bounded constraints.newick"
 tree <- read.tree(tree_file)
@@ -78,11 +83,12 @@ taxa <- d$Species
 pruned_tree <- drop.tip(tree, tip = setdiff(tree$tip.label, taxa))
 # plot the pruned tree
 p <- ggtree(pruned_tree, layout = "fan") +
-  geom_tiplab(aes(label=label), size=2)
+  geom_tiplab(aes(label=label), size = 2)
 p
+plot.phylo(pruned_tree, type = "fan", cex = 0.6)
 ```
 
-# Vignette 2 - Phylogenetically Independent Contrasts
+## Effect of Phylogenetic Structure
 
 When we are interested in coevolution of traits or adaptive relationships of traits within a group of organisms, it is critical to recognize that closely related species may share trait values because of shared evolutionary history, NOT because of adaptation.
 
@@ -90,9 +96,9 @@ To explore this, let's simulate *random evolution* of two metric characters on t
 
 ```{r}
 set.seed(25)
-x <- fastBM(pruned_tree, a = 100, mu = 0, sig2 = 100)
-y <- fastBM(pruned_tree, a = 100, mu = 0, sig2 = 100)
-d <- tibble(bodysize = x, homerange = y)
+bodysize <- fastBM(pruned_tree, a = 100, mu = 0, sig2 = 100)
+homerange <- fastBM(pruned_tree, a = 100, mu = 0, sig2 = 100)
+d <- tibble(bodysize = bodysize, homerange = homerange)
 ggplot(d, aes(x = bodysize, y= homerange)) +
   geom_point() +
   geom_smooth(method = "lm")
@@ -101,9 +107,9 @@ m <- lm(homerange ~ bodysize, d)
 summary(m)
 
 set.seed(30)
-x <- fastBM(pruned_tree, a = 100, mu = 0, sig2 = 100)
-y <- fastBM(pruned_tree, a = 100, mu = 0, sig2 = 100)
-d <- tibble(bodysize = x, homerange = y)
+bodysize <- fastBM(pruned_tree, a = 100, mu = 0, sig2 = 100)
+homerange <- fastBM(pruned_tree, a = 100, mu = 0, sig2 = 100)
+d <- tibble(bodysize = bodysize, homerange = homerange)
 ggplot(d, aes(x = bodysize, y= homerange)) +
   geom_point() +
   geom_smooth(method = "lm")
@@ -112,15 +118,15 @@ m <- lm(homerange ~ bodysize, d)
 summary(m)
 ```
 
-How about if we do this MANY time? A simulation...
+How about if we do this MANY times? A simulation...
 
 ```{r}
 sim <- tibble(est = numeric(), p = numeric(), seed = numeric())
 for (i in 1:100){
   set.seed(i)
-  x <- fastBM(pruned_tree, a = 100, mu = 0, sig2 = 100)
-  y <- fastBM(pruned_tree, a = 100, mu = 0, sig2 = 100)
-  d <- tibble(bodysize = x, homerange = y)
+  bodysize <- fastBM(pruned_tree, a = 100, mu = 0, sig2 = 100)
+  homerange <- fastBM(pruned_tree, a = 100, mu = 0, sig2 = 100)
+  d <- tibble(bodysize = bodysize, homerange = homerange)
   m <- lm(homerange ~ bodysize, d)
   est <- m |> tidy() |>
        filter(term == "bodysize") |>
@@ -138,7 +144,9 @@ hist(sim$est, breaks = seq(-1.2, 1.2, 0.2), main = "Histogram of coefficient est
 hist(sim$p, breaks = seq(0,1, by = 0.05), main = "Histogram of p values")
 ```
 
-Let's pull out the seed with the highest estimate from our simulation...
+Takehome? Many simulations wind up with p values of less than 0.05 for traits that are evolving independently of one another, based just on the phylogenetic tree structure!
+
+Let's pull out the seed with the highest positive estimate from our simulation...
 
 ```{r}
 seed <- sim |>
@@ -146,9 +154,9 @@ seed <- sim |>
         slice_head(n = 1) |>
         pull(seed)
 set.seed(seed)
-x <- fastBM(pruned_tree, a = 100, mu = 0, sig2 = 100)
-y <- fastBM(pruned_tree, a = 100, mu = 0, sig2 = 100)
-d <- tibble(bodysize = x, homerange = y)
+bodysize <- fastBM(pruned_tree, a = 100, mu = 0, sig2 = 100)
+homerange <- fastBM(pruned_tree, a = 100, mu = 0, sig2 = 100)
+d <- tibble(bodysize = bodysize, homerange = homerange)
 ggplot(d, aes(x = bodysize, y= homerange)) +
   geom_point() +
   geom_smooth(method = "lm")
@@ -156,35 +164,35 @@ m <- lm(homerange ~ bodysize, d)
 summary(m)
 ```
 
-This is correlation that's due entirely to effects of phylogeny! Here, species data are not independent of one another!
+Note again that this steep positive correlation is due entirely to effects of phylogeny! Here, species data are not independent of one another...
 
-## Phylogenetic Independent Contrasts
+## Running a Phylogenetic Independent Contrasts Analysis
 
 If we are interested in accounting for the effects of phylogeny on the interdependence of our data points, how might we control for this? 
 
 One way is to use CONTRASTS at each internal node, which are independent of one another. For a bifurcating tree with N taxa, the are N-1 independent contrasts.
 
-We can use ordinary regression where each observation is the CONTRAST at each internal node...
+Instead of use ordinary least square (OLS) regression where data points are each taxon's trait values, we can run OLS where each observation is the CONTRAST at each internal node (and where we force the regression through the origin).
 
 ```{r}
-pic.bodysize <- pic(x, pruned_tree) # pic function to implement independent contrasts
-pic.homerange <- pic(y, pruned_tree)
-d <- tibble(bodysize = pic.bodysize, homerange = pic.homerange)
-ggplot(d, aes(x = bodysize, y= homerange)) +
+contrasts.bodysize <- pic(bodysize, pruned_tree) # use the pic function to calculate independent contrasts
+contrasts.homerange <- pic(homerange, pruned_tree)
+d <- tibble(contrasts.bodysize = contrasts.bodysize, contrasts.homerange = contrasts.homerange)
+ggplot(d, aes(x = contrasts.bodysize, y = contrasts.homerange)) +
   geom_point() +
   geom_smooth(method = "lm")
-pic.m <- lm(pic.homerange ~ pic.bodysize + 0)
+pic.m <- lm(contrasts.homerange ~ contrasts.bodysize + 0) # include the term + 0 to force the regression through the origin, i.e., to not calculate an intercept term
 summary(pic.m)
 # there is no relationship between the contrasts...
 ```
 
-It is critical to take phylogeny into account otherwise we risk concluding that adaptation or coevolution have occurred when the relationship seen is due to phylogeny.
+Takehome? It is critical to take phylogeny into account otherwise we risk concluding that adaptation or coevolution have occurred when the relationship seen between two traits of interest is due to phylogeny.
 
-# Phylogenetic Generalized Least Squares
+## Phylogenetic Generalized Least Squares
 
-PIC method is fine for looking at two metric variables, but often we are interested in more than 2 traits and at traits that are non-metric. PGLS is more flexible approach.
+The PIC method is fine for looking at two metric variables, but often we are interested in more than two traits and/or at traits that are non-metric. PGLS is more flexible approach. PIC is also just a specific application of PGLS.
 
-First, we will do PIC on a new dataset... how is eye size related to body size?
+First, we will do PIC on a new dataset and address the question, how is *eye size* related to *body size* in primates? This data set uses "Orbit_area" as a measure of eye size and "Skull_length" as a measure of body size.
 
 ```{r}
 d <- read_csv("primateEyes.csv", col_names = TRUE)
@@ -196,11 +204,18 @@ p
 ggplot(d, aes(x = log(Skull_length), y=log(Orbit_area))) +
   geom_point() +
   geom_smooth(method = "lm")
-# ordinary least squares
-m <- lm(Orbit_area ~ Skull_length, data = d)
-summary(m)
+```
 
-# PIC
+Ordinary least squares regression...
+
+```{r}
+m <- lm(log(Orbit_area) ~ log(Skull_length), data = d)
+summary(m)
+```
+
+Now PIC...
+
+```{r}
 orbit.area <- d$Orbit_area
 names(orbit.area) <- d$Genus_species
 skull.length <- d$Skull_length
@@ -211,40 +226,53 @@ d <- tibble(contrasts.orbit.area = pic.orbit.area, contrasts.skull.length = pic.
 ggplot(d, aes(x = contrasts.skull.length, y= contrasts.orbit.area)) +
   geom_point() +
   geom_smooth(method = "lm")
-pic.m <- lm(pic.orbit.area ~ pic.skull.length + 0)
+pic.m <- lm(pic.orbit.area ~ pic.skull.length + 0) # +0 to force the regression through the origin
 summary(pic.m)
 ```
 
-To do PGLS, now, we need to convert our TREE to a correlation structure object...
+For this dataset, a positive relationship between orbit size and bidy size remains when we use contrasts.
 
-There are different ways to do this, but one simple one is to assume that the correlation between the residual errors of any pairs of species is proportional to the distance on the tree back to the common ancestor of that pair. [There are alternative models to derive this correlation structure that imagine more complex forms of evolutionary change.]
+To now do PGLS, now, we need to convert our TREE to a correlation structure object.
+
+There are different ways to do this, but one simple approach is to assume that the correlation between the residual errors of any pair of species is proportional to the distance on the tree back to the common ancestor of that pair. [There are alternative models to derive the correlation structure that imagine more complex forms of evolutionary change.]
 
 ```{r}
-# re-read data
+# read in data again
 d <- read_csv("primateEyes.csv", col_names = TRUE)
 taxa <- d$Genus_species
 corBM <- corBrownian(phy = tree, form = ~taxa)
 corBM
-pgls.m <- gls(log(Orbit_area)~log(Skull_length), data = d, correlation = corBM)
+pgls.m <- gls(log(Orbit_area)~log(Skull_length), data = d, correlation = corBM) # note that we do not need to force the regression through the origin
 summary(pgls.m)
 ```
 
-NOTE: these are the same results for this data set! PIC is a specialized case of PGLS.
+Compare the results for PGLS and PIC for this same dataset and analysis. Note that they yield the same results for the estimate and the p value. PIC is a specialized case of PGLS.
 
-More generally, we can include additional covariates in our modeling.
+More generally, with PGLS, we can include additional covariates in our modeling.
 
-Using this dataset, let's now see if *relative eye size* is related to *activity pattern*, i.e., how is eye size related to both body size and activity pattern?
+For example, using this dataset, we can now see if *eye size* is related to both *body size* and *activity pattern* using, essentially, ANCOVA.
 
 ```{r}
 pgls.m <- gls(log(Orbit_area)~log(Skull_length) + Activity_pattern, data = d, correlation = corBM)
 anova(pgls.m)
+```
 
+Based on the ANOVA table, when *body size* is taken into account, mean *orbit size* is different for different levels of *activity pattern*, and when *activity pattern* is taken into account, *orbit size* is positively related to *body size*.
+
+We can visualize these patterns using the following code...
+
+```{r}
+# create a grid of data to put into the pgls model to predict orbit size from body size and activity pattern...
 newdata <- expand.grid(
   Skull_length = seq(min(d$Skull_length), max(d$Skull_length), length.out = 100),
   Activity_pattern = levels(as.factor(d$Activity_pattern))
 )
 newdata$prediction <- predict(pgls.m, newdata)
+```
 
+And then plot the original data and regression lines for each level of *activity pattern*...
+
+```{r}
 ggplot(d, aes(x = log(Skull_length), y = log(Orbit_area), color = Activity_pattern)) +
   geom_point(size = 3) +
   geom_line(data = newdata, aes(y = prediction), linewidth = 1) +
@@ -257,24 +285,25 @@ ggplot(d, aes(x = log(Skull_length), y = log(Orbit_area), color = Activity_patte
   )
 ```
 
-# Ancestral State Reconstruction
+## Ancestral State Reconstruction
 
-Let's go back to the Lewis et al data we looked at before...
+Let's return to the Lewis et al data we looked at before and try to replicate their Ancestral State Reconstruction results.
 
 ```{r}
 tree_file <- "Springer et al S2 timetree with autocorrelated rates and hard-bounded constraints.newick"
 tree <- read.tree(tree_file)
-# prune the tree to only species used by Lewis et al 2023
 d <- read_csv("Lewis et al table S1.csv", col_names = TRUE)
 taxa <- d$Species
-pruned_tree <- drop.tip(tree, tip = setdiff(tree$tip.label, taxa))
-
-d <- as.data.frame(d) # need to convert tibble to dataframe to use with treetable and ggtree
 d$Dominance <- as.factor(d$Dominance)
+par(mar = c(2, 1, 1, 1)) 
+# prune the tree to only species used by Lewis et al 2023
+pruned_tree <- drop.tip(tree, tip = setdiff(tree$tip.label, taxa))
+plot.phylo(pruned_tree, cex = 0.6)
+
 colors <- c("green", "blue", "red")
 state_names <- c("codominant", "female", "male")
 
-# plot the pruned tree with character stats on tips
+# plot the pruned tree with character states on tips
 p <- ggtree(pruned_tree, layout = "fan") %<+% d +
   geom_tippoint(aes(color = Dominance), size = 3) +
   scale_color_manual(values = colors) +
@@ -282,9 +311,9 @@ p <- ggtree(pruned_tree, layout = "fan") %<+% d +
 p
 ```
 
-## Run Ancestral State Reconstruction
+### Mk Model of Discrete Character Evolution
 
-Dominant model for the evolution of discrete characters on a phylogeny is the Mk model - continuous time, discrete k, Markov chain model
+Dominant model for the evolution of discrete characters on a phylogeny is the Mk model (continuous time, discrete k, Markov chain model).
 
 ```{r}
 # define data to analyze
@@ -292,20 +321,20 @@ character_data <- d$Dominance
 names(character_data) <- d$Species
 tree <- pruned_tree
 tree$node.label <- 1:Nnode(tree) + length(tree$tip.label)
-#### Run Mk Ancestral State Reconstruction ----
-# try ER, ARD, and SYM models
-fitER <- fitMk(tree, character_data, model = "ER") # equal rates of change among character states
-# equal rates model, fitzjohn root prior
-fitARD <- fitMk(tree, character_data, model = "ARD") # all rates different model of change among character states
-# all rates different model, fitzjohn root prior
-fitSYM <- fitMk(tree, character_data, model = "SYM") # symmetric rates model of change among character states
+# Run Mk Ancestral State Reconstruction ----
+## equal rates model
+fitER <- fitMk(tree, character_data, model = "ER")
+## all rates different model
+fitARD <- fitMk(tree, character_data, model = "ARD")
+## symmetric rates model
+fitSYM <- fitMk(tree, character_data, model = "SYM")
 aov <- anova(fitER, fitARD, fitSYM) # compare models -- which best fits observed patterns of states at tips
 bestMk <- rownames(aov[which.min(aov$AIC),])
 Mk <- ancr(aov, type = "marginal", weighted = FALSE, tips = TRUE)
-# with weighted = false, uses the best supported model for asr
-Mk_probs <- Mk$ace
-Mk_node_pies <- Mk_probs[(length(tree$tip.label) + 1):(length(tree$tip.label) + tree$Nnode), ]
-Mk_tip_pies <- Mk_probs[1:length(tree$tip.label), ]
+# with weighted = FALSE, ancr() uses the best supported model for ASR; with weighted = TRUE, models are weighted based on weight
+Mk_probs <- Mk$ace # all nodes
+Mk_node_pies <- Mk_probs[(length(tree$tip.label) + 1):(length(tree$tip.label) + tree$Nnode), ] # subset for just internal nodes
+Mk_tip_pies <- Mk_probs[1:length(tree$tip.label), ] # subset for just tips
 
 plot.phylo(tree, type = "cladogram", cex = 0.6, main = "Mk Model ASR")
 #### add pie charts for ancestral states at internal nodes
@@ -326,12 +355,17 @@ legend("topleft",
 #)
 ```
 
-Alternative ASR using stochastic character mapping
+### Stochastic Character Mapping for ASR
 
 ```{r}
 #### Run SCM Ancestral State Reconstruction ----
 nsim <- 100  # Number of stochastic maps to generate
 scmER <- make.simmap(tree, character_data, model = "ER", nsim = nsim)
+# or
+# scmARD <- make.simmap(tree, character_data, model = "ARD", nsim = nsim)
+# or
+# scmSYM <- make.simmap(tree, character_data, model = "SYM", nsim = nsim)
+
 #### summarize the stochastic maps
 summary_scm <- summary(scmER)
 
